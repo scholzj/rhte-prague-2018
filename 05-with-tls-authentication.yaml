@@ -11,6 +11,8 @@ spec:
       tls:
         authentication: 
           type: tls
+    authorization:
+      type: simple
     storage:
       type: persistent-claim
       size: 1Gi

@@ -17,11 +17,6 @@ spec:
         image: 172.30.1.1:5000/myproject/hello-world-producer:latest
         imagePullPolicy: Always
         env:
-          - name: CA_CRT
-            valueFrom:
-              secretKeyRef:
-                name: my-cluster-cluster-ca-cert
-                key: ca.crt
           - name: BOOTSTRAP_SERVERS
             value: my-cluster-kafka-bootstrap:9093
           - name: TOPIC
@@ -66,11 +61,6 @@ spec:
         image: 172.30.1.1:5000/myproject/hello-world-consumer:latest
         imagePullPolicy: Always
         env:
-          - name: CA_CRT
-            valueFrom:
-              secretKeyRef:
-                name: my-cluster-cluster-ca-cert
-                key: ca.crt
           - name: BOOTSTRAP_SERVERS
             value: my-cluster-kafka-bootstrap:9093
           - name: TOPIC

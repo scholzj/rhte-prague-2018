@@ -45,7 +45,7 @@ A key part of the operator concept is that an operator embeds operational knowle
 To save time I'm going to work through most of the demo with a Kafka cluster with a single broker.
 This makes all the rolling updates quicker. We'll scale it up at the end.
 
-# Configuring Kafka and Zookeeper
+## Configuring Kafka and Zookeeper
 
 Kafka allows many parts of a broker to be customised.
 We want to allow users the ability to customise their Kafka cluster within OpenShift in the same way. At the same time and in order for the operator to make running the cluster easy for users, the operator needs ownership of some of the Kafka configurables. For example, to make TLS work the operators needs to use some of the SSL-related configurables. So there's a list of options which the operator takes charge of and which users are forbidden from setting themselves.
@@ -54,7 +54,7 @@ All the rest of the configs can be specified by the user. For example here I'm g
 
     oc apply -f 03-with-config.yaml
 
-# Configuring TLS authentication
+## Configuring Authentication and Authorization
 
 I've already mentioned that TLS is used for encryption within and between the Zookeeper and Kafka clusters. TLS can also be used for clients, both to provide encrypted communication and also for authentication. It's worth pointing out that this is mutual TLS authentication. So the identity of the client can be established on the broker using its TLS certificate, as well as the more common case where the client authenticate the server.
 
@@ -68,7 +68,7 @@ Secondly I need to tell Kafka that I want to authenticate clients using thei TLS
 
     oc apply -f 05-with-tls-authentication.yaml
 
-# Resource limits
+## Resource limits
 
 Kafka uses the OS page cache rather than having a data caching strategy of its own. This means that to use Kafka effectively in OpenShift we need a way of giving some memory to the JVM, but also leaving plenty of memory available for use by the OS page cache.
 
@@ -76,7 +76,7 @@ OpenShift doesn't provide a single neat way to do this. What we can do is provid
 
     oc apply -f 06-with-resource-limits.yaml
 
-# Accessing fast disks
+## Accessing fast disks
 
 Obviously the nodes within an OpenShift cluster are not identical. The most important thing in getting a performant Kafka cluster is optimizing I/O. So we need to ensure that when OpenShift schedules broker pods it puts them on nodes with fast disks. 
 
@@ -86,7 +86,7 @@ Pod affinity does not guarantee that other I/O hungry workloads aren't going to 
 
 **Because the demo is on a developer laptop, it's not possible to show this.**
 
-# Dedicating nodes to Kafka
+## Dedicating nodes to Kafka
 
 Sometimes node affinity and pod anitaffinity are not enough. The operator supports the same mechanism that OpenShift does to support dedicating nodes to a particular workload: Tolerations. 
 
@@ -96,7 +96,7 @@ Briefly the idea is that you select certain nodes and mark those with a taint. N
 
 **Because the demo is on a developer laptop, it's not possible to show this.**
 
-# Rack awareness
+## Rack awareness
 
 Kafka relies on having multiple copies of each partition in order to ensure messages are availably even when individual brokers are not available. These copies are called replicas.
 
@@ -108,7 +108,7 @@ AMQ Streams on OpenShift supports rack-aware scheduling to avoid this kind of pr
 
 **Because the demo is on a developer laptop, it's not possible to show this.**
 
-# Adding the Entity Operator
+## Adding the Entity Operator
 
 Having set up a Kafka cluster we are ultimately going to want to use it to send and receive messages.
 Before we can get there we are going to need to create a user within Kafka so our application can authenticate itself to the brokers.
@@ -131,8 +131,7 @@ The benefits here are:
 * users don't need to know all the Kafka tools in order to do these things
 * it means that this configuration can be version controlled and fits well with things like gitops.
 
-# Scaling up Kafka
-
+## Scaling up Kafka
 
 It's now time to scale up our cluster: We just have to change the `replicas` field in the desired resource to the number of brokers we want.
 
@@ -143,8 +142,7 @@ Having made changes which require containers to be started or restarted we can w
 
     oc get pods -w
 
-
-# Creating Topics and Users
+## Creating Topics and Users
 
 For this demo I'm going to need a single topic, which I create like this:
 
@@ -165,9 +163,30 @@ With that in place we can create the applications
     oc logs $(oc get pods -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep hello-world-producer)
     oc logs -f $(oc get pods -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep hello-world-consumer)
 
-
-# Running a client application
+## Running a client application
 
 We now have all the moving parts in place to deploy an application.
 
     oc apply -f 10-demo-application.yaml
+
+## Kafka Connect
+
+Deploy the user for Kafka Connect.
+
+    oc apply -f 11-my-connect.yaml
+
+And deploy Kafka Connect.
+
+    oc apply -f 12-kafka-connect.yaml
+
+## Adding Kafka Connect connectors
+
+Any additional connectors can be added to Kafka Connect using S2I.
+
+    oc start-build my-connect-s2i-connect --from-dir 13-connect-plugins/ --follow
+
+And deploy the connector.
+
+    oc exec -ti $(oc get pod -l app=tech-exchange-kafka-connect -o=jsonpath='{.items[0].metadata.name}') -- curl -X POST -H "Content-Type: application/json" --data '{ "name": "echo-sink-test", "config": { "connector.class": "EchoSink", "tasks.max": "3", "topics": "my-topic", "level": "INFO" } }' http://localhost:8083/connectors
+
+Check the Kafka Connect logs to see the messages arriving.
