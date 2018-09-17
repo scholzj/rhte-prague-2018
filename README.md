@@ -6,7 +6,7 @@ The cluster operator is the most important componnent in AMQ Streams on OpenShif
 It follows the usual Operator pattern of watching for changes on some desired resource and making changes in other resources to make them match the desired state.
 It can be deployed like this:
 
-    oc create -f 01-deploy-cluster-operator/
+    oc apply -f 01-install-cluster-operator/
 
 In the case of the Cluster Operator, the desired resource represents a Kafka cluster.
 This is stored as a Custom Resource within OpenShift.
@@ -20,7 +20,7 @@ Let's start off with the simplest possible Kafka cluster:
     cat 02-simplest-cluster.yaml
     oc apply -f 02-simplest-cluster.yaml
 
-It's worth mentioning here that although I'm creating this Kafka resource in the same namespace that the Cluster operator is running in it doesn't have to be that way. The cluster operator can be configured with watch different namespaces than the one it's deployed in. Using a single namespace just makes the demo simpler.
+It's worth mentioning here that although I'm creating this `Kafka` resource in the same namespace that the Cluster operator is running in it doesn't have to be that way. The cluster operator can be configured with watch different namespaces than the one it's deployed in. Using a single namespace just makes the demo simpler.
 
 When we create this in OpenShift the Cluster Operator will deploy:
 
@@ -108,6 +108,17 @@ AMQ Streams on OpenShift supports rack-aware scheduling to avoid this kind of pr
 
 **Because the demo is on a developer laptop, it's not possible to show this.**
 
+## Scaling up Kafka
+
+It's now time to scale up our cluster: We just have to change the `replicas` field in the desired resource to the number of brokers we want.
+
+    oc edit kafka my-kafka
+    # change spec.kafka.replicas to 3
+
+Having made changes which require containers to be started or restarted we can watch as the operator deletes the pods and the statefulset creates new ones:
+
+    oc get pods -w
+
 ## Adding the Entity Operator
 
 Having set up a Kafka cluster we are ultimately going to want to use it to send and receive messages.
@@ -131,18 +142,7 @@ The benefits here are:
 * users don't need to know all the Kafka tools in order to do these things
 * it means that this configuration can be version controlled and fits well with things like gitops.
 
-## Scaling up Kafka
-
-It's now time to scale up our cluster: We just have to change the `replicas` field in the desired resource to the number of brokers we want.
-
-    oc edit kafka my-kafka
-    # change spec.kafka.replicas to 3
-
-Having made changes which require containers to be started or restarted we can watch as the operator deletes the pods and the statefulset creates new ones:
-
-    oc get pods -w
-
-## Creating Topics and Users
+## Creating Topics & Users, running alient application
 
 For this demo I'm going to need a single topic, which I create like this:
 
@@ -159,15 +159,9 @@ The client also needs to trust the broker's certificates, so we need to ensure t
 
 With that in place we can create the applications
 
-    oc create -f 10-demo-application.yaml
+    oc apply -f 10-demo-application.yaml
     oc logs $(oc get pods -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep hello-world-producer)
     oc logs -f $(oc get pods -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep hello-world-consumer)
-
-## Running a client application
-
-We now have all the moving parts in place to deploy an application.
-
-    oc apply -f 10-demo-application.yaml
 
 ## Kafka Connect
 
