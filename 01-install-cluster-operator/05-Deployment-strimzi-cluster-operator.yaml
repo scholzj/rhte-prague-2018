@@ -9,6 +9,7 @@ spec:
   template:
     metadata:
       labels:
+        app: amq-streams-cluster-operator
         name: strimzi-cluster-operator
     spec:
       serviceAccountName: strimzi-cluster-operator

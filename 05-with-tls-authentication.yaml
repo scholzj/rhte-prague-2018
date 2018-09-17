@@ -2,6 +2,8 @@ apiVersion: kafka.strimzi.io/v1alpha1
 kind: Kafka
 metadata:
   name: my-cluster
+  labels:
+    app: tech-exchange-kafka
 spec:
   kafka:
     replicas: 1
@@ -22,4 +24,3 @@ spec:
     storage:
       type: persistent-claim
       size: 1Gi
-
