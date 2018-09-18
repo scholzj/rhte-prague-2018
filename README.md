@@ -76,6 +76,10 @@ OpenShift doesn't provide a single neat way to do this. What we can do is provid
 
     oc apply -f 06-with-resource-limits.yaml
 
+## Prometheus metrics
+
+AMQ Streams provides metrics exports for Prometheus. Users can plug it with their own Prometheus installation to monitor AMQ Streams. Prometheus is not included in this demo.
+
 ## Accessing fast disks
 
 Obviously the nodes within an OpenShift cluster are not identical. The most important thing in getting a performant Kafka cluster is optimizing I/O. So we need to ensure that when OpenShift schedules broker pods it puts them on nodes with fast disks.
@@ -181,6 +185,8 @@ Any additional connectors can be added to Kafka Connect using S2I.
 
 And deploy the connector.
 
-    oc exec -ti $(oc get pod -l app=tech-exchange-kafka-connect -o=jsonpath='{.items[0].metadata.name}') -- curl -X POST -H "Content-Type: application/json" --data '{ "name": "echo-sink-test", "config": { "connector.class": "EchoSink", "tasks.max": "3", "topics": "my-topic", "level": "INFO" } }' http://localhost:8083/connectors
+    ./14-connector.yaml
 
 Check the Kafka Connect logs to see the messages arriving.
+
+    oc logs $(oc get pod -l app=tech-exchange-kafka-connect -o=jsonpath='{.items[0].metadata.name}') -f
