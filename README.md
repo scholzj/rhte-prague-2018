@@ -78,7 +78,7 @@ OpenShift doesn't provide a single neat way to do this. What we can do is provid
 
 ## Accessing fast disks
 
-Obviously the nodes within an OpenShift cluster are not identical. The most important thing in getting a performant Kafka cluster is optimizing I/O. So we need to ensure that when OpenShift schedules broker pods it puts them on nodes with fast disks. 
+Obviously the nodes within an OpenShift cluster are not identical. The most important thing in getting a performant Kafka cluster is optimizing I/O. So we need to ensure that when OpenShift schedules broker pods it puts them on nodes with fast disks.
 
 AMQ Stream on OpenShift supports this in exactly the same way that OpenShift itself does: Using pod affinity. If nodes with fast disks are all labelled appropriately I can express an affinity to nodes with that label in the Kafka resource.
 

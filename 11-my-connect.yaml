@@ -88,3 +88,4 @@ spec:
           type: topic
           name: connect-cluster-offsets
         operation: Create
+

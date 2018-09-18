@@ -30,3 +30,4 @@ spec:
           type: topic
           name: my-topic
         operation: Describe
+

@@ -26,3 +26,4 @@ spec:
     storage:
       type: persistent-claim
       size: 1Gi
+
