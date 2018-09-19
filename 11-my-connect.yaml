@@ -21,7 +21,7 @@ spec:
         operation: Describe
       - resource:
           type: group
-          name: connect-sink-test
+          name: connect-echo-sink-test
         operation: Read
       # Kafka Connects internal topics
       - resource:

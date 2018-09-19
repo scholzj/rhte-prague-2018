@@ -2,7 +2,7 @@
 
 ## Cluster Operator
 
-The cluster operator is the most important componnent in AMQ Streams on OpenShift.
+The cluster operator is the most important component in AMQ Streams on OpenShift.
 It follows the usual Operator pattern of watching for changes on some desired resource and making changes in other resources to make them match the desired state.
 It can be deployed like this:
 
